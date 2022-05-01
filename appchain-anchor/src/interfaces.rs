@@ -145,6 +145,19 @@ pub trait AnchorViewer {
         start_nonce: u32,
         quantity: Option<u32>,
     ) -> Vec<AppchainMessageProcessingResult>;
+    /// Get appchain challenge by index.
+    /// If the param `index `is omitted, the latest challenge data will be returned.
+    /// If the paran `index` is smaller than the start index, or bigger than the end index
+    /// stored in anchor, or there is no challenge data in anchor yet,
+    /// `Option::None` will be returned.
+    fn get_appchain_challenge(&self, index: Option<U64>) -> Option<AppchainChallenge>;
+    /// Get appchain challenge data by start index and quantity.
+    /// If the param `quantity` is omitted, up to 50 records will be returned.
+    fn get_appchain_challenges(
+        &self,
+        start_index: U64,
+        quantity: Option<U64>,
+    ) -> Vec<AppchainChallenge>;
 }
 
 pub trait AppchainLifecycleManager {
@@ -216,6 +229,8 @@ pub trait PermissionlessActions {
     );
     ///
     fn process_appchain_messages(&mut self) -> MultiTxsOperationProcessingResult;
+    ///
+    fn commit_appchain_challenge(&mut self, appchain_challenge: AppchainChallenge);
 }
 
 pub trait ProtocolSettingsManager {
@@ -366,6 +381,8 @@ pub trait SudoActions {
     fn set_latest_applied_appchain_message_nonce(&mut self, nonce: u32);
     ///
     fn remove_appchain_messages_before(&mut self, nonce: u32);
+    ///
+    fn try_complete_switching_era(&mut self) -> MultiTxsOperationProcessingResult;
 }
 
 pub trait ValidatorActions {
