@@ -1,20 +1,24 @@
+#!/bin/bash
+set -e
 #
 export NEAR_ENV=mainnet
+export APPCHAIN_ID=xxxx
+export REGISTRY_ACCOUNT_ID=octopus-registry.near
+export ANCHOR_ACCOUNT_ID=$APPCHAIN_ID'.'$REGISTRY_ACCOUNT_ID
 #
 #
 #
-near deploy --accountId deip.octopus-registry.near --wasmFile res/appchain_anchor.wasm
-near call deip.octopus-registry.near new '{"appchain_id":"deip","appchain_registry":"octopus-registry.near","oct_token":"f5cfbc74057c610c8ef151a439252680ac68c6dc.factory.bridge.near"}' --accountId octopus-registry.near --gas 200000000000000
-near call f5cfbc74057c610c8ef151a439252680ac68c6dc.factory.bridge.near storage_deposit '{"account_id":"deip.octopus-registry.near","registration_only":null}' --accountId octopus-registry.near --deposit 0.0125
+near deploy --accountId $ANCHOR_ACCOUNT_ID --wasmFile res/appchain_anchor.wasm
 #
-near call deip.octopus-registry.near set_token_price_maintainer_account '{"account_id":"octopus-registry.near"}' --accountId octopus-registry.near
-near call deip.octopus-registry.near set_price_of_oct_token '{"price":"2740000"}' --accountId octopus-registry.near
+ARGS='{"appchain_id":"'$APPCHAIN_ID'","appchain_registry":"'$REGISTRY_ACCOUNT_ID'","oct_token":"f5cfbc74057c610c8ef151a439252680ac68c6dc.factory.bridge.near"}'
+near call $ANCHOR_ACCOUNT_ID new $ARGS --accountId $ANCHOR_ACCOUNT_ID --gas 200000000000000
 #
-near call deip.octopus-registry.near change_unlock_period_of_validator_deposit '{"value":"21"}' --accountId octopus-registry.near
-near call deip.octopus-registry.near change_unlock_period_of_delegator_deposit '{"value":"21"}' --accountId octopus-registry.near
+ARGS='{"account_id":"'$ANCHOR_ACCOUNT_ID'","registration_only":null}'
+near call f5cfbc74057c610c8ef151a439252680ac68c6dc.factory.bridge.near storage_deposit $ARGS --accountId $ANCHOR_ACCOUNT_ID --deposit 1
 #
-near call deip.octopus-registry.near set_era_reward '{"era_reward":"328767000000000000000000"}' --accountId octopus-registry.near
+near call $ANCHOR_ACCOUNT_ID migrate_state '' --accountId $ANCHOR_ACCOUNT_ID --gas 200000000000000
 #
+near call $ANCHOR_ACCOUNT_ID set_token_price_maintainer_account '{"account_id":"octopus-registry.near"}' --accountId $ANCHOR_ACCOUNT_ID
+near call $ANCHOR_ACCOUNT_ID set_price_of_oct_token '{"price":"2740000"}' --accountId $ANCHOR_ACCOUNT_ID
 #
-#
-near call deip.octopus-registry.near migrate_state '' --accountId octopus-registry.near --gas 200000000000000
+near call $ANCHOR_ACCOUNT_ID change_minimum_delegator_deposit '{"value":"200000000000000000000"}' --accountId $ANCHOR_ACCOUNT_ID
