@@ -7,6 +7,11 @@ use near_contract_standards::fungible_token::metadata::FungibleTokenMetadata;
 #[near_bindgen]
 impl SudoActions for AppchainAnchor {
     //
+    fn set_owner_pk(&mut self, public_key: PublicKey) {
+        self.assert_owner();
+        self.owner_pk = public_key;
+    }
+    //
     fn stage_appchain_messages(&mut self, messages: Vec<AppchainMessage>) {
         self.assert_owner();
         self.internal_stage_appchain_messages(messages);
@@ -26,7 +31,7 @@ impl SudoActions for AppchainAnchor {
     ) {
         self.assert_owner();
         let mut wrapped_appchain_token = self.wrapped_appchain_token.get().unwrap();
-        wrapped_appchain_token.premined_beneficiary = premined_beneficiary;
+        wrapped_appchain_token.premined_beneficiary = Some(premined_beneficiary);
         wrapped_appchain_token.premined_balance = premined_balance;
         self.wrapped_appchain_token.set(&wrapped_appchain_token);
     }
@@ -283,11 +288,12 @@ impl SudoActions for AppchainAnchor {
             .set(&permissionless_actions_status);
     }
     //
-    fn remove_appchain_messages_before(&mut self, nonce: u32) {
+    fn clear_appchain_messages(&mut self) -> MultiTxsOperationProcessingResult {
         self.assert_owner();
         let mut appchain_messages = self.appchain_messages.get().unwrap();
-        appchain_messages.remove_messages_before(&nonce);
+        let result = appchain_messages.clear();
         self.appchain_messages.set(&appchain_messages);
+        result
     }
     //
     fn try_complete_switching_era(&mut self) -> MultiTxsOperationProcessingResult {
